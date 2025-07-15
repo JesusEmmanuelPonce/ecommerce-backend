@@ -4,6 +4,6 @@ export class CreateUserDto {
     email: string;
     phone: string;
     password: string;
-    image: string;
+    image?: string;
     notification_token: string;
 }
