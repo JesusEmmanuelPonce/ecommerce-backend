@@ -4,6 +4,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { User } from 'src/users/user.entity';
 import { RegisterAuthDto } from './dto/register-auth.dto';
+import { LoginAuthDto } from './dto/login-auth.dto';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -28,5 +30,23 @@ export class AuthService {
 
     const newUser = this.userRepository.create(user);
     return this.userRepository.save(newUser);
+  }
+
+  async login(data: LoginAuthDto) {
+    const { email, password } = data;
+
+    const userFound = await this.userRepository.findOneBy({ email });
+
+    if (!userFound) {
+      throw new HttpException('Verifique su email', HttpStatus.NOT_FOUND);
+    }
+
+    const isPassword = await compare(password, userFound.password);
+
+    if (!isPassword) {
+      throw new HttpException('Verifique sus credenciales', HttpStatus.FORBIDDEN);
+    }
+
+    return userFound
   }
 }
