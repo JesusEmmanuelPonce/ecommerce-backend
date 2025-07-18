@@ -1,16 +1,18 @@
+import { compare } from 'bcrypt';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { User } from 'src/users/user.entity';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
-import { compare } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private jwtService: JwtService
   ) {}
 
   async register(user: RegisterAuthDto) {
@@ -47,6 +49,16 @@ export class AuthService {
       throw new HttpException('Verifique sus credenciales', HttpStatus.FORBIDDEN);
     }
 
-    return userFound
+    const payload = {
+      id: userFound.id,
+      name: userFound.name
+    }
+
+    const token = this.jwtService.sign(payload)
+
+    return {
+      user: userFound,
+      token,
+    }
   }
 }
